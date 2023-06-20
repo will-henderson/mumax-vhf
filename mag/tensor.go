@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mumax/3/data"
 	en "github.com/mumax/3/engine"
 )
 
@@ -204,9 +203,8 @@ func (t Tensor) Copy() Tensor {
 
 func (t Tensor) Energy() float64 {
 
-	m := data.NewSlice(3, en.Mesh().Size())
-	en.M.EvalTo(m)
-	m_arr := m.Vectors() //order is Z, Y, X
+	mSl := en.M.Buffer().HostCopy()
+	m := mSl.Vectors() //order is Z, Y, X
 
 	E := 0.
 	for i := 0; i < Nx; i++ {
@@ -218,7 +216,7 @@ func (t Tensor) Energy() float64 {
 							for c := 0; c < 3; c++ {
 								for c_ := 0; c_ < 3; c_++ {
 
-									E += t.GetIdx(c, c_, i, j, k, i_, j_, k_) * float64(m_arr[c][k][j][i]*m_arr[c_][k_][j_][i_])
+									E += t.GetIdx(c, c_, i, j, k, i_, j_, k_) * float64(m[c][k][j][i]*m[c_][k_][j_][i_])
 								}
 							}
 						}

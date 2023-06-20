@@ -5,7 +5,6 @@ import (
 
 	. "github.com/will-henderson/mumax-vhf/mag"
 
-	"github.com/mumax/3/data"
 	en "github.com/mumax/3/engine"
 
 	"gonum.org/v1/gonum/mat"
@@ -16,7 +15,12 @@ type RotatedToZ struct {
 	R [][][][3][3]float64
 }
 
-func (solver RotatedToZ) Solve(t Tensor) {
+func (solver RotatedToZ) Modes() ([]float64, [][3][][][]complex128) {
+	t := LinearTensor()
+	return solver.Solve(t)
+}
+
+func (solver RotatedToZ) Solve(t Tensor) ([]float64, [][3][][][]complex128) {
 
 	// set up the R vector for rotations
 	solver.initRotation()
@@ -38,7 +42,7 @@ func (solver RotatedToZ) Solve(t Tensor) {
 
 	for p := 0; p < totalSize; p++ {
 
-		freq[p] = imag(values[p])
+		freq[p] = imag(values[p]) * DynamicFactor
 
 		var mode [2][][][]complex128
 
@@ -58,14 +62,14 @@ func (solver RotatedToZ) Solve(t Tensor) {
 		modes[p] = solver.derotateMode(mode)
 	}
 
-	//need to build a smaller array which only contains the perpendicular directions.
+	return freq, modes
 
 }
 
 func (solver RotatedToZ) initRotation() {
-	mSl := data.NewSlice(3, en.Mesh().Size())
-	en.M.EvalTo(mSl)
-	m := mSl.Vectors()
+
+	mSl := en.M.Buffer().HostCopy()
+	m := mSl.Vectors() //order is Z, Y, X
 
 	R := make([][][][3][3]float64, Nx)
 

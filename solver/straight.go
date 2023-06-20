@@ -13,6 +13,11 @@ type Straight struct {
 	eigenSolver
 }
 
+func (solver Straight) Modes() ([]float64, [][3][][][]complex128) {
+	t := LinearTensor()
+	return solver.Solve(t)
+}
+
 func (solver Straight) Solve(t Tensor) ([]float64, [][3][][][]complex128) {
 
 	toSolve := solver.magCross(t)
@@ -27,28 +32,37 @@ func (solver Straight) Solve(t Tensor) ([]float64, [][3][][][]complex128) {
 	eig.VectorsTo(vectors)
 
 	totalSize := 3 * Nx * Ny * Nz
-	freq := make([]float64, totalSize)
+	freqs := make([]float64, totalSize)
 	modes := make([][3][][][]complex128, 3*Nx*Ny*Nz)
 
+	q := 0
 	for p := 0; p < totalSize; p++ {
 
-		freq[p] = imag(values[p])
+		freq := imag(values[p])
 
-		for c := 0; c < 3; c++ {
-			modes[p][c] = make([][][]complex128, Nx)
-			for i := 0; i < Nx; i++ {
-				modes[p][c][i] = make([][]complex128, Ny)
-				for j := 0; j < Ny; j++ {
-					modes[p][c][i][j] = make([]complex128, Nz)
-					for k := 0; k < Nz; k++ {
-						modes[p][c][i][j][k] = vectors.At(p, c*Nx*Ny*Nz+i*Nz*Ny+j*Nz+k)
+		if freq != 0 {
+
+			freqs[q] = freq * DynamicFactor
+
+			for c := 0; c < 3; c++ {
+				modes[q][c] = make([][][]complex128, Nx)
+				for i := 0; i < Nx; i++ {
+					modes[q][c][i] = make([][]complex128, Ny)
+					for j := 0; j < Ny; j++ {
+						modes[q][c][i][j] = make([]complex128, Nz)
+						for k := 0; k < Nz; k++ {
+							modes[q][c][i][j][k] = vectors.At(q, c*Nx*Ny*Nz+i*Nz*Ny+j*Nz+k)
+						}
 					}
 				}
 			}
+
+			q++
+
 		}
 	}
 
-	return freq, modes
+	return freqs, modes
 
 }
 
