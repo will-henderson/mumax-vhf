@@ -7,11 +7,8 @@ import (
 	"strings"
 
 	en "github.com/mumax/3/engine"
-)
 
-var ( //need to actaully initialise this at some point
-	Nx, Ny, Nz int
-	Dx, Dy, Dz float64
+	. "github.com/will-henderson/mumax-vhf/setup"
 )
 
 type Tensor struct {

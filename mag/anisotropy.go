@@ -2,6 +2,8 @@ package mag
 
 import (
 	en "github.com/mumax/3/engine"
+
+	. "github.com/will-henderson/mumax-vhf/setup"
 )
 
 var (

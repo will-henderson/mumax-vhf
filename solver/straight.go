@@ -2,6 +2,7 @@ package solver
 
 import (
 	. "github.com/will-henderson/mumax-vhf/mag"
+	. "github.com/will-henderson/mumax-vhf/setup"
 
 	"github.com/mumax/3/data"
 	en "github.com/mumax/3/engine"

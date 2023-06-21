@@ -7,11 +7,12 @@ import (
 
 func AddExchangeField(s, dst *data.Slice) {
 
-	m0 := magnetisationBuffer
-	magnetisationBuffer = s
+	magnetisationBuffer := getMagnetisationBuffer()
+	m0 := *magnetisationBuffer
+	*magnetisationBuffer = s
 
-	en.SetDemagField(dst)
+	en.AddExchangeField(dst)
 
-	magnetisationBuffer = m0
+	*magnetisationBuffer = m0
 
 }

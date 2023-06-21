@@ -4,6 +4,7 @@ import (
 	"math"
 
 	. "github.com/will-henderson/mumax-vhf/mag"
+	. "github.com/will-henderson/mumax-vhf/setup"
 
 	en "github.com/mumax/3/engine"
 
