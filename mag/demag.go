@@ -11,6 +11,8 @@ var (
 	demagTensor *Tensor
 )
 
+// DemagTensor returns the self-interaction tensor for the Demagnetising interaction.
+// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
 func DemagTensor() Tensor {
 
 	if demagTensor == nil {
@@ -21,6 +23,9 @@ func DemagTensor() Tensor {
 
 }
 
+// UpdateDemagTensor returns the self-interaction tensor for the Demagnetising interaction.
+// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
+// This forces the updating of the tensor, rather than potentially returning a cached value.
 func UpdateDemagTensor() Tensor {
 
 	kernel := mag.DemagKernel(en.Mesh().Size(), en.Mesh().PBC(), en.Mesh().CellSize(), en.DemagAccuracy, *en.Flag_cachedir)
@@ -91,6 +96,7 @@ func UpdateDemagTensor() Tensor {
 
 }
 
+// mod returns the remainder of the division of a by b
 func mod(a, b int) int {
 	return (a + b) % b
 }

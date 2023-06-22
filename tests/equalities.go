@@ -4,6 +4,9 @@ import (
 	"github.com/will-henderson/mumax-vhf/setup"
 )
 
+// EqualScalars tests whether the fractional error between A and B is less than maxErr
+// It returns an integer, 0 if less than maxErr, 1 if greater than maxError
+// The return value is integer rather than boolean for consistency with the other equality functions in the package.
 func EqualScalars(A, B float64, maxErr float64) int {
 	frac := A / B
 	n := 0
@@ -13,6 +16,8 @@ func EqualScalars(A, B float64, maxErr float64) int {
 	return n
 }
 
+// Equal scalars tests whether the fractional error betweeen each element of A and B is less than maxErr
+// It returns an integer equal to the number of elements where the factional error is greater than maxErr
 func EqualFields(A, B [3][][][]float32, maxErr float32) int {
 
 	n := 0

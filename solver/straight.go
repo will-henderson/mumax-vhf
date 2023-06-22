@@ -10,15 +10,22 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+// A Straight solver returns the modes in the simplest way possible. By diagonalising the LinearTensor of the system directly.
+// The time complexity is O((3*Nx*Ny*Nz)^3)
 type Straight struct {
 	eigenSolver
 }
 
+// Modes returns the eigenfrequencies and corresponding eigenmodes of the system.
+// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
+// and assumes that the ground state magnetisation is currently stored in en.M.
+// It returns 2 * Nx * Ny * Nz eigenpairs (zero eigenfrequencies are ignored)
 func (solver Straight) Modes() ([]float64, [][3][][][]complex128) {
 	t := LinearTensor()
 	return solver.Solve(t)
 }
 
+// Solve returns the non-null eigenpairs of a particular input Tensor after taking cross product with the system magnetisation.
 func (solver Straight) Solve(t Tensor) ([]float64, [][3][][][]complex128) {
 
 	toSolve := solver.magCross(t)
@@ -67,6 +74,7 @@ func (solver Straight) Solve(t Tensor) ([]float64, [][3][][][]complex128) {
 
 }
 
+// magCross performs the cross product of the input tensor with the system magnetisation
 func (solver Straight) magCross(t Tensor) Tensor {
 
 	mSl := data.NewSlice(3, en.Mesh().Size())

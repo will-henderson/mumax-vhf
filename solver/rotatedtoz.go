@@ -11,24 +11,33 @@ import (
 	"gonum.org/v1/gonum/mat"
 )
 
+// A RotatedToZ solver returns the modes of the system by first rotating the system
+// such that the z direction at each point coincides with the ground state direction at that point.
+// As a result (and because non-null eigenmodes are perpendicular to the ground state), the zero eigenmodes can be eliminated from the system
+// and hence a smaller matrix can be diagonalised.
+// The time complexity is O((2*Nx*Ny*Nz)^3)
 type RotatedToZ struct {
 	eigenSolver
 	R [][][][3][3]float64
 }
 
+// Modes returns the eigenfrequencies and corresponding eigenmodes of the system.
+// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
+// and assumes that the ground state magnetisation is currently stored in en.M.
+// It returns 2 * Nx * Ny * Nz eigenpairs (zero eigenfrequencies are ignored)
 func (solver RotatedToZ) Modes() ([]float64, [][3][][][]complex128) {
 	t := LinearTensor()
 	return solver.Solve(t)
 }
 
+// Solve returns the non-null eigenpairs of a particular input Tensor after taking cross product with the system magnetisation.
 func (solver RotatedToZ) Solve(t Tensor) ([]float64, [][3][][][]complex128) {
 
-	// set up the R vector for rotations
 	solver.initRotation()
 
 	rotated := solver.rotateToZ(t)
 	toSolve := solver.magCross(rotated)
-	arr := to1D(toSolve)
+	arr := toSolve.To1D()
 	matrix := mat.NewDense(2*Nx*Ny*Nz, 2*Nx*Ny*Nz, arr)
 
 	var eig mat.Eigen
@@ -67,6 +76,8 @@ func (solver RotatedToZ) Solve(t Tensor) ([]float64, [][3][][][]complex128) {
 
 }
 
+// initRotation initialises the variable R, the 3D slice of pointwise rotation matrices used for rotating to z.
+// It satisfies R_r m_r := (0, 0, 1) where m_r is the (supposedly) ground state magnetisation
 func (solver RotatedToZ) initRotation() {
 
 	mSl := en.M.Buffer().HostCopy()
@@ -99,6 +110,8 @@ func (solver RotatedToZ) initRotation() {
 	}
 }
 
+// rotateToZ applies the pointwise rotation matrix to the Tensor t
+// It returns R_r t_rr' R_r.T
 func (solver RotatedToZ) rotateToZ(t Tensor) Tensor {
 
 	copy := t.Copy()
@@ -159,6 +172,8 @@ func (solver RotatedToZ) rotateToZ(t Tensor) Tensor {
 
 }
 
+// magCross performs the cross product of the input tensor with the system magnetisation,
+// working in the rotated-to-z basis.
 func (solver RotatedToZ) magCross(t Tensor) Tensor {
 
 	result := Zeros()
@@ -186,32 +201,8 @@ func (solver RotatedToZ) magCross(t Tensor) Tensor {
 	return result
 }
 
-func to1D(t Tensor) []float64 {
-	totalSize := 2 * Nx * Ny * Nz * 2 * Nx * Ny * Nz
-	arr := make([]float64, totalSize)
-
-	for c := 0; c < 2; c++ {
-		for i := 0; i < Nx; i++ {
-			for j := 0; j < Ny; j++ {
-				for k := 0; k < Nz; k++ {
-					// make a row
-					p := 2 * Nx * Ny * Nz * (Nx*Ny*Nz*c + Ny*Nz*i + Nz*j + k)
-					for c_ := 0; c_ < 2; c_++ {
-						for i_ := 0; i_ < Nx; i_++ {
-							for j_ := 0; j_ < Ny; j_++ {
-								for k_ := 0; k_ < Nz; k_++ {
-									arr[p+Nx*Ny*Nz*c_+Ny*Nz*i_+Nz*j_+k_] = t.GetIdx(c, c_, i, j, k, i_, j_, k_)
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	return arr
-}
-
+// derotateMode rotates a mode back to the original basis.
+// It returns R_r.T (mode_r)
 func (solver RotatedToZ) derotateMode(mode [2][][][]complex128) [3][][][]complex128 {
 
 	var derotated [3][][][]complex128

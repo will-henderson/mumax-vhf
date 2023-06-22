@@ -1,3 +1,4 @@
+// Package setup declares system parameters and tells them to mumax
 package setup
 
 import (
@@ -13,6 +14,7 @@ var (
 	DynamicFactor float64
 )
 
+// A SystemParameters holds the variables defining the micromagnetic model
 type SystemParameters struct {
 	Nx, Ny, Nz     int
 	Dx, Dy, Dz     float64
@@ -21,6 +23,8 @@ type SystemParameters struct {
 	B_ext          [3]float64
 }
 
+// Setup assigns the variables to global variables, and tells them to mumax.
+// This should be called after "defer en.InitAndClose()()"
 func (p SystemParameters) Setup() {
 
 	Nx = p.Nx

@@ -11,26 +11,35 @@ import (
 	. "github.com/will-henderson/mumax-vhf/setup"
 )
 
+// A Tensor contains data in a [3][3][Nx][Ny][Nz][Nx][Ny][Nz] array.
 type Tensor struct {
 	N [3][3][][][][][][]float64
 }
 
+// Get returns the underlying array structure.
 func (t Tensor) Get() [3][3][][][][][][]float64 {
 	return t.N
 }
 
+// Get returns the element corresponding to the c component of magnetisation at position (i, j, k)
+// and the c_ component of magnetisation at position (i_, j_, k_).
 func (t Tensor) GetIdx(c, c_, i, j, k, i_, j_, k_ int) float64 {
 	return t.N[c][c_][i][j][k][i_][j_][k_]
 }
 
+// Set sets the element corresponding to the c component of magnetisation at position (i, j, k)
+// and the c_ component of magnetisation at position (i_, j_, k_), to value val.
 func (t Tensor) SetIdx(c, c_, i, j, k, i_, j_, k_ int, val float64) {
 	t.N[c][c_][i][j][k][i_][j_][k_] = val
 }
 
+// Add adds val to the element corresponding to the c component of magnetisation at position (i, j, k)
+// and the c_ component of magnetisation at position (i_, j_, k_).
 func (t Tensor) AddIdx(c, c_, i, j, k, i_, j_, k_ int, val float64) {
 	t.N[c][c_][i][j][k][i_][j_][k_] += val
 }
 
+// AddTensors returns a tensor corresponding to the elementwise addition of the inputs.
 func AddTensors(Ns ...Tensor) Tensor {
 
 	var result [3][3][][][][][][]float64
@@ -65,6 +74,9 @@ func AddTensors(Ns ...Tensor) Tensor {
 	return Tensor{result}
 }
 
+// To1D returns a [(3*Nx*Ny*Nz) * (3*Nx*Ny*Nz)]float64 of elements.
+// The elements are ordered by magnetisation component, then x position, then y position, then z position for the r position,
+// and then analogously for the r' position.
 func (t Tensor) To1D() []float64 {
 	totalSize := 3 * Nx * Ny * Nz * 3 * Nx * Ny * Nz
 	arr := make([]float64, totalSize)
@@ -91,6 +103,8 @@ func (t Tensor) To1D() []float64 {
 	return arr
 }
 
+// To2D returns a [3*Nx*Ny*Nz][3*Nx*Ny*Nz]float64 of elements with the first dimension corresponding to the r position and second to the r' position.
+// The elements are ordered by magnetisation component, then x position, then y position, then z position.
 func (t Tensor) To2D() [][]float64 {
 
 	totalSize := 3 * Nx * Ny * Nz
@@ -121,6 +135,8 @@ func (t Tensor) To2D() [][]float64 {
 
 }
 
+// ToCSV saves a tensor in CSV format in a file named name. The columns correspond to the r position and rows to the r' position.
+// The elements are ordered by magnetisation component, then x position, then y position, then z position.
 func (t Tensor) ToCSV(name string) {
 
 	f, _ := os.Create(name)
@@ -136,6 +152,7 @@ func (t Tensor) ToCSV(name string) {
 	}
 }
 
+// Zeros returns a Tensor with all elements set to zero.
 func Zeros() Tensor {
 	var N [3][3][][][][][][]float64
 
@@ -166,6 +183,7 @@ func Zeros() Tensor {
 	return Tensor{N}
 }
 
+// Copy returns a deep copy of the tensor.
 func (t Tensor) Copy() Tensor {
 
 	var N_ [3][3][][][][][][]float64
@@ -198,6 +216,8 @@ func (t Tensor) Copy() Tensor {
 
 }
 
+// Energy returns the energy of the tensor. Calculated as .5 * Σ_rr' m_r t_rr' m_r'.
+// It depends on the magnetization, but this is not an input, rather the value of en.M is used.
 func (t Tensor) Energy() float64 {
 
 	mSl := en.M.Buffer().HostCopy()

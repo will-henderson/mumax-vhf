@@ -10,6 +10,8 @@ var (
 	uniAnisTensor *Tensor
 )
 
+// UniAnisTensor returns the self-interaction tensor for the uniaxial anisotropy interaction.
+// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
 func UniAnisTensor() Tensor {
 	if uniAnisTensor == nil {
 		return UpdateUniAnisTensor()
@@ -18,6 +20,9 @@ func UniAnisTensor() Tensor {
 	}
 }
 
+// UpdateUniAnisTensor returns the self-interaction tensor for the uniaxial anisotropy interaction.
+// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
+// This forces the updating of the tensor, rather than potentially returning a cached value.
 func UpdateUniAnisTensor() Tensor {
 
 	unianis_factor := -2 * en.Ku1.GetRegion(0) * Dx * Dy * Dz
