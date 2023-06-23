@@ -21,7 +21,7 @@ type Straight struct {
 // and assumes that the ground state magnetisation is currently stored in en.M.
 // It returns 2 * Nx * Ny * Nz eigenpairs (zero eigenfrequencies are ignored)
 func (solver Straight) Modes() ([]float64, [][3][][][]complex128) {
-	t := LinearTensor()
+	t := LinearHamiltonianTensor()
 	return solver.Solve(t)
 }
 
