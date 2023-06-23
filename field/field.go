@@ -11,15 +11,27 @@ var (
 	magnetisationBuffer **data.Slice //address of en.M.buffer_ in memory
 )
 
+type CSlice struct {
+	Real, Imag *data.Slice
+}
+
 // SetFieldComplex sets the the slices beff_real and beff_imag to, repectively, the real and imaginary components of the field
 // B(s) for a complex magnetisation s, with real component s_real and imaginary component s_imag.
 // Note that this assumes that the inputs live on the GPU.
-func SetFieldComplex(s_real, s_imag, beff_real, beff_imag *data.Slice) {
+func SetFieldComplex(s, b CSlice) {
 
-	SetDemagComplex(s_real, s_imag, beff_real, beff_imag)
-	AddExchangeComplex(s_real, s_imag, beff_real, beff_imag)
-	AddAnisotropyComplex(s_real, s_imag, beff_real, beff_imag)
+	SetDemagComplex(s, b)
+	AddExchangeComplex(s, b)
+	AddAnisotropyComplex(s, b)
 
+	en.B_ext.AddTo(b.Real)
+
+}
+
+func SetSIFieldComplex(s, b CSlice) {
+	SetDemagComplex(s, b)
+	AddExchangeComplex(s, b)
+	AddAnisotropyComplex(s, b)
 }
 
 // getMagnetisationBuffer returns the address of en.M.buffer_, a pointer to a slice on the GPU storing the magnetisation.

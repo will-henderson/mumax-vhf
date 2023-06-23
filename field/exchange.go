@@ -8,10 +8,10 @@ import (
 // AddExchangeComplex adds to beff_real and beff_imag, repectively, the real and imaginary components of the exchange field
 // B(s) for a complex magnetisation s, with real component s_real and imaginary component s_imag.
 // Note that this assumes that the inputs live on the GPU.
-func AddExchangeComplex(s_real, s_imag, beff_real, beff_imag *data.Slice) {
+func AddExchangeComplex(s, b CSlice) {
 
-	AddExchangeField(s_real, beff_real)
-	AddExchangeField(s_imag, beff_imag)
+	AddExchangeField(s.Real, b.Real)
+	AddExchangeField(s.Imag, b.Imag)
 }
 
 // AddExchangeField adds the exchange field B(s) for a real magnetisation s to dst.

@@ -8,10 +8,10 @@ import (
 // AddAnisotropyComplex adds to beff_real and beff_imag, repectively, the real and imaginary components of the anisotropy field
 // B(s) for a complex magnetisation s, with real component s_real and imaginary component s_imag.
 // Note that this assumes that the inputs live on the GPU.
-func AddAnisotropyComplex(s_real, s_imag, beff_real, beff_imag *data.Slice) {
+func AddAnisotropyComplex(s, b CSlice) {
 
-	AddAnisotropyField(s_real, beff_real)
-	AddAnisotropyField(s_imag, beff_imag)
+	AddAnisotropyField(s.Real, b.Real)
+	AddAnisotropyField(s.Imag, b.Imag)
 }
 
 // AddAnisotropyField adds the anisotropy field B(s) for a real magnetisation s to dst.
