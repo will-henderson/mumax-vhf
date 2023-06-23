@@ -8,6 +8,10 @@ import (
 	. "github.com/will-henderson/mumax-vhf/setup"
 )
 
+var (
+	linearTensor *Tensor
+)
+
 // SystemTensor returns the self-interaction tensor with contibutions from the Demagnetising, Exchange, and Uniaxial Anisotropy interactions.
 // Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
 func SystemTensor() Tensor {
@@ -24,8 +28,19 @@ func UpdateSystemTensor() Tensor {
 // LinearTensor returns the tensor representation of the linear Hamiltonian of the system.
 // Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
 func LinearTensor() Tensor {
+	if linearTensor == nil {
+		return UpdateLinearTensor()
+	} else {
+		return *linearTensor
+	}
+}
 
-	systemTensor := SystemTensor()
+// UpdateLinearTensor returns the tensor representation of the linear Hamiltonian of the system.
+// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
+// This forces updating of self-interaction tensors and zeeman energy, as well as accounting for possibly changed ground state.
+func UpdateLinearTensor() Tensor {
+
+	systemTensor := UpdateSystemTensor()
 
 	mSl := en.M.Buffer().HostCopy()
 	m := mSl.Vectors() //order is Z, Y, X
@@ -33,7 +48,7 @@ func LinearTensor() Tensor {
 	B_extSl, _ := en.B_ext.Slice()
 	B_ext := B_extSl.Vectors()
 
-	linearTensor := systemTensor.Copy()
+	ret := systemTensor.Copy()
 
 	for i := 0; i < Nx; i++ {
 		for j := 0; j < Ny; j++ {
@@ -59,12 +74,13 @@ func LinearTensor() Tensor {
 				}
 
 				for c := 0; c < 3; c++ {
-					linearTensor.AddIdx(c, i, j, k, c, i, j, k, zeeTerm-gsTerm)
+					ret.AddIdx(c, i, j, k, c, i, j, k, zeeTerm-gsTerm)
 				}
 
 			}
 		}
 	}
 
-	return linearTensor
+	linearTensor = &ret
+	return ret
 }
