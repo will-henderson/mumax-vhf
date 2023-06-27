@@ -9,38 +9,38 @@ import (
 )
 
 var (
-	linearTensor *Tensor
+	linearHamiltonianTensor *Tensor
 )
 
 // SystemTensor returns the self-interaction tensor with contibutions from the Demagnetising, Exchange, and Uniaxial Anisotropy interactions.
 // Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
-func SystemTensor() Tensor {
+func SelfInteractionTensor() Tensor {
 	return AddTensors(DemagTensor(), ExchangeTensor(), UniAnisTensor())
 }
 
 // UpdateSystemTensor returns the self-interaction tensor with contibutions from the Demagnetising, Exchange, and Uniaxial Anisotropy interactions.
 // Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
 // This forces the updating of the self-interaction tensor, rather than potentially returning a cached value.
-func UpdateSystemTensor() Tensor {
+func UpdateSelfInteractionTensor() Tensor {
 	return AddTensors(UpdateDemagTensor(), UpdateExchangeTensor(), UpdateUniAnisTensor())
 }
 
 // LinearTensor returns the tensor representation of the linear Hamiltonian of the system.
 // Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
-func LinearTensor() Tensor {
-	if linearTensor == nil {
-		return UpdateLinearTensor()
+func LinearHamiltonianTensor() Tensor {
+	if linearHamiltonianTensor == nil {
+		return UpdateLinearHamiltonianTensor()
 	} else {
-		return *linearTensor
+		return *linearHamiltonianTensor
 	}
 }
 
-// UpdateLinearTensor returns the tensor representation of the linear Hamiltonian of the system.
+// UpdateLinearHamiltonianTensor returns the tensor representation of the linear Hamiltonian of the system.
 // Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
 // This forces updating of self-interaction tensors and zeeman energy, as well as accounting for possibly changed ground state.
-func UpdateLinearTensor() Tensor {
+func UpdateLinearHamiltonianTensor() Tensor {
 
-	systemTensor := UpdateSystemTensor()
+	systemTensor := UpdateSelfInteractionTensor()
 
 	mSl := en.M.Buffer().HostCopy()
 	m := mSl.Vectors() //order is Z, Y, X
@@ -81,6 +81,6 @@ func UpdateLinearTensor() Tensor {
 		}
 	}
 
-	linearTensor = &ret
+	linearHamiltonianTensor = &ret
 	return ret
 }
