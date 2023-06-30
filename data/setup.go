@@ -1,5 +1,5 @@
 // Package setup declares system parameters and tells them to mumax
-package setup
+package data
 
 import (
 	"fmt"
@@ -26,6 +26,8 @@ type SystemParameters struct {
 // Setup assigns the variables to global variables, and tells them to mumax.
 // This should be called after "defer en.InitAndClose()()"
 func (p SystemParameters) Setup() {
+
+	ResetGlobals()
 
 	Nx = p.Nx
 	Ny = p.Ny

@@ -3,29 +3,14 @@ package mag
 import (
 	en "github.com/mumax/3/engine"
 
-	. "github.com/will-henderson/mumax-vhf/setup"
-)
-
-var (
-	exchangeTensor *Tensor
+	. "github.com/will-henderson/mumax-vhf/data"
 )
 
 // ExchangeTensor returns the self-interaction tensor for the Exchange interaction.
 // Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
 func ExchangeTensor() Tensor {
-	if exchangeTensor == nil {
-		return UpdateExchangeTensor()
-	} else {
-		return *exchangeTensor
-	}
-}
 
-// UpdateExchangeTensor returns the self-interaction tensor for the Exchange interaction.
-// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
-// This forces the updating of the tensor, rather than potentially returning a cached value.
-func UpdateExchangeTensor() Tensor {
-
-	exchange_factor := -2. * en.Aex.GetRegion(0)
+	exchange_factor := -2. * en.Aex.GetRegion(0) / (Dx * Dy * Dz)
 
 	xf := (Dy * Dz / Dx) * exchange_factor
 	yf := (Dx * Dz / Dy) * exchange_factor
@@ -84,7 +69,6 @@ func UpdateExchangeTensor() Tensor {
 		}
 	}
 
-	exchangeTensor = &t
 	return t
 
 }

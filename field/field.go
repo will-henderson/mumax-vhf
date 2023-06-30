@@ -6,6 +6,8 @@ import (
 	"github.com/mumax/3/cuda"
 	"github.com/mumax/3/data"
 	en "github.com/mumax/3/engine"
+
+	. "github.com/will-henderson/mumax-vhf/data"
 )
 
 var (
@@ -15,42 +17,23 @@ var (
 // SetFieldComplex sets the the slices beff_real and beff_imag to, repectively, the real and imaginary components of the field
 // B(s) for a complex magnetisation s, with real component s_real and imaginary component s_imag.
 // Note that this assumes that the inputs live on the GPU.
-func SetFieldComplex(s, b CSlice) {
+func SetFieldComplex(b, s CSlice) {
 
-	SetDemagComplex(s, b)
-	AddExchangeComplex(s, b)
-	AddAnisotropyComplex(s, b)
+	SetDemagComplex(b, s)
+	AddExchangeComplex(b, s)
+	AddAnisotropyComplex(b, s)
 
-	en.B_ext.AddTo(b.Real)
-
-}
-
-// SelfInteractionOperate sets res to the value Σ_r' H_rr' s_r',
-// that is, the operation of the self-interaction tensor on a complex magnetisation s
-func SelfInteractionOperate(s, res CSlice) {
-
-	SIField := NewCSlice(3, en.Mesh().Size())
-	defer SIField.Free()
-
-	SetSIFieldComplex(s, SIField)
-
-	msat, rM := en.Msat.Slice()
-	if rM {
-		defer cuda.Recycle(msat)
-	}
-
-	//Msat is real so can just multiply real and imag parts individually
-	for c := 0; c < 3; c++ {
-		cuda.Mul(res.Real, SIField.Real, msat)
-		cuda.Mul(res.Imag, SIField.Imag, msat)
-	}
+	en.B_ext.AddTo(b.Real())
 
 }
 
-func SetSIFieldComplex(s, b CSlice) {
-	SetDemagComplex(s, b)
-	AddExchangeComplex(s, b)
-	AddAnisotropyComplex(s, b)
+// SetSIFieldComplex sets res to the value -(1/Ms) * Σ_r' H_rr' s_r' ,
+// that is, the operation of the self-interaction tensor on a complex magnetisation s.
+// It is the self-interaction field (i.e. without the external field Bext) created by the complex magnetisation s.
+func SetSIFieldComplex(b, s CSlice) {
+	SetDemagComplex(b, s)
+	AddExchangeComplex(b, s)
+	AddAnisotropyComplex(b, s)
 }
 
 // getMagnetisationBuffer returns the address of en.M.buffer_, a pointer to a slice on the GPU storing the magnetisation.
@@ -66,4 +49,23 @@ func getMagnetisationBuffer() **data.Slice {
 
 	}
 	return magnetisationBuffer
+}
+
+// returns the ground state magnetic field, but as a scalar for each position
+// (it's direction is equal to the direction of the ground state magnetisation)
+func GroundStateField() *data.Slice {
+
+	dst := cuda.NewSlice(3, en.Mesh().Size())
+	defer dst.Free()
+
+	en.SetDemagField(dst)
+	en.AddExchangeField(dst)
+	en.AddAnisotropyField(dst)
+
+	//dst now holds the ground state field.
+	result := cuda.NewSlice(1, en.Mesh().Size())
+	cuda.Zero(result)
+	cuda.AddDotProduct(result, 1, en.M.Buffer(), dst)
+
+	return result
 }

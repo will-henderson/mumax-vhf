@@ -3,29 +3,15 @@ package mag
 import (
 	en "github.com/mumax/3/engine"
 
-	. "github.com/will-henderson/mumax-vhf/setup"
-)
-
-var (
-	uniAnisTensor *Tensor
+	. "github.com/will-henderson/mumax-vhf/data"
 )
 
 // UniAnisTensor returns the self-interaction tensor for the uniaxial anisotropy interaction.
 // Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
-func UniAnisTensor() Tensor {
-	if uniAnisTensor == nil {
-		return UpdateUniAnisTensor()
-	} else {
-		return *uniAnisTensor
-	}
-}
-
-// UpdateUniAnisTensor returns the self-interaction tensor for the uniaxial anisotropy interaction.
-// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
 // This forces the updating of the tensor, rather than potentially returning a cached value.
-func UpdateUniAnisTensor() Tensor {
+func UniAnisTensor() Tensor {
 
-	unianis_factor := -2 * en.Ku1.GetRegion(0) * Dx * Dy * Dz
+	unianis_factor := -2 * en.Ku1.GetRegion(0)
 	direction := en.AnisU.GetRegion(0)
 
 	var op_direction [3][3]float64
@@ -50,7 +36,6 @@ func UpdateUniAnisTensor() Tensor {
 		}
 	}
 
-	uniAnisTensor = &t
 	return t
 
 }

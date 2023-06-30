@@ -7,13 +7,13 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/will-henderson/mumax-vhf/setup"
+	. "github.com/will-henderson/mumax-vhf/data"
 )
 
 // Load returns an array containing the test case system parameters stored in testcases.json
-func Load() []setup.SystemParameters {
+func Load() []SystemParameters {
 
-	jsonFile, err := os.Open("users.json")
+	jsonFile, err := os.Open("../tests/testcases.json") //should use a proper path joining here
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -21,13 +21,13 @@ func Load() []setup.SystemParameters {
 
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
-	var tests []setup.SystemParameters
+	var tests []SystemParameters
 	json.Unmarshal(byteValue, &tests)
 
 	return tests
 }
 
 // Name returns a string representation of SystemParameters
-func Name(s setup.SystemParameters) string {
+func Name(s SystemParameters) string {
 	return fmt.Sprint(s)
 }

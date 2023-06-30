@@ -14,34 +14,30 @@ import (
 func TestEnergy(t *testing.T) {
 
 	testcases := tests.Load()
+	defer en.InitAndClose()()
 
-	for _, p := range testcases {
+	for test_idx, p := range testcases {
 
-		t.Run(tests.Name(p), func(t *testing.T) {
+		p.Setup()
 
-			defer en.InitAndClose()()
+		en.Relax()
 
-			p.Setup()
+		want := en.GetDemagEnergy()
+		got := Energy(DemagTensor(), en.M.Buffer())
+		if tests.EqualScalars(want, got, 1e-2) > 0 {
+			t.Errorf("%d: Demag Energy was %e; want %e", test_idx, got, want)
+		}
 
-			en.Relax()
+		want = en.GetExchangeEnergy()
+		got = Energy(ExchangeTensor(), en.M.Buffer())
+		if tests.EqualScalars(want, got, 1e-2) > 0 {
+			t.Errorf("%d: Exchange Energy was %e; want %e", test_idx, got, want)
+		}
 
-			want := en.GetDemagEnergy()
-			got := DemagTensor().Energy()
-			if tests.EqualScalars(want, got, 1e-2) > 0 {
-				t.Errorf("Demag Energy was %e; want %e", got, want)
-			}
-
-			want = en.GetExchangeEnergy()
-			got = ExchangeTensor().Energy()
-			if tests.EqualScalars(want, got, 1e-2) > 0 {
-				t.Errorf("Exchange Energy was %e; want %e", got, want)
-			}
-
-			want = en.GetAnisotropyEnergy()
-			got = UniAnisTensor().Energy()
-			if tests.EqualScalars(want, got, 1e-2) > 0 {
-				t.Errorf("Anisotropy Energy was %e; want %e", got, want)
-			}
-		})
+		want = en.GetAnisotropyEnergy()
+		got = Energy(UniAnisTensor(), en.M.Buffer())
+		if tests.EqualScalars(want, got, 1e-2) > 0 {
+			t.Errorf("%d: Anisotropy Energy was %e; want %e", test_idx, got, want)
+		}
 	}
 }

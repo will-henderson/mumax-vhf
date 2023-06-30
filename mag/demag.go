@@ -4,35 +4,18 @@ import (
 	en "github.com/mumax/3/engine"
 	"github.com/mumax/3/mag"
 
-	. "github.com/will-henderson/mumax-vhf/setup"
-)
-
-var (
-	demagTensor *Tensor
+	. "github.com/will-henderson/mumax-vhf/data"
 )
 
 // DemagTensor returns the self-interaction tensor for the Demagnetising interaction.
 // Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
 func DemagTensor() Tensor {
 
-	if demagTensor == nil {
-		return UpdateDemagTensor()
-	} else {
-		return *demagTensor
-	}
-
-}
-
-// UpdateDemagTensor returns the self-interaction tensor for the Demagnetising interaction.
-// Note that it does not have any inputs. Rather it uses the geometry defined by the global variables.
-// This forces the updating of the tensor, rather than potentially returning a cached value.
-func UpdateDemagTensor() Tensor {
-
 	kernel := mag.DemagKernel(en.Mesh().Size(), en.Mesh().PBC(), en.Mesh().CellSize(), en.DemagAccuracy, *en.Flag_cachedir)
 	t := Zeros()
 
 	Msat := en.Msat.GetRegion(0)
-	demag_factor := -Dx * Dy * Dz * Msat * Msat * mag.Mu0
+	demag_factor := -Msat * Msat * mag.Mu0
 
 	size := kernel[0][0].Size()
 
@@ -91,7 +74,6 @@ func UpdateDemagTensor() Tensor {
 		}
 	}
 
-	demagTensor = &t
 	return t
 
 }
