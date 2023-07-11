@@ -50,7 +50,7 @@ func (cs CSlice) Imag() *data.Slice {
 	return cs.imag
 }
 
-func (cs CSlice) SwitchParts() {
+func (cs *CSlice) SwitchParts() {
 	temp := cs.real
 	cs.real = cs.imag
 	cs.imag = temp
@@ -106,15 +106,16 @@ func RandomPerpendicular(m *data.Slice) CSlice {
 	//create a random vector on the CPU
 	seed := 0
 	rng := rand.New(rand.NewSource(int64(seed)))
+	size := m.Size()
 
-	rndRealCPU := data.NewSlice(3, [3]int{Nx, Ny, Nz})
+	rndRealCPU := data.NewSlice(3, size)
 	rndRealVectors := rndRealCPU.Vectors()
-	rndImagCPU := data.NewSlice(3, [3]int{Nx, Ny, Nz})
+	rndImagCPU := data.NewSlice(3, size)
 	rndImagVectors := rndImagCPU.Vectors()
 	for c := 0; c < 3; c++ {
-		for k := 0; k < Nz; k++ {
-			for j := 0; j < Ny; j++ {
-				for i := 0; i < Nx; i++ {
+		for k := 0; k < size[2]; k++ {
+			for j := 0; j < size[1]; j++ {
+				for i := 0; i < size[0]; i++ {
 					rndRealVectors[c][k][j][i] = rng.Float32()
 					rndImagVectors[c][k][j][i] = rng.Float32()
 				}
@@ -122,18 +123,18 @@ func RandomPerpendicular(m *data.Slice) CSlice {
 		}
 	}
 
-	rndRealGPU := cuda.NewSlice(3, [3]int{Nx, Ny, Nz})
+	rndRealGPU := cuda.NewSlice(3, size)
 	data.Copy(rndRealGPU, rndRealCPU)
-	rndImagGPU := cuda.NewSlice(3, [3]int{Nx, Ny, Nz})
+	rndImagGPU := cuda.NewSlice(3, size)
 	data.Copy(rndImagGPU, rndImagCPU)
 
-	paraReal := cuda.NewSlice(1, [3]int{Nx, Ny, Nz})
+	paraReal := cuda.NewSlice(1, size)
 	defer paraReal.Free()
 	cuda.Zero(paraReal)
 	cuda.AddDotProduct(paraReal, -1, m, rndRealGPU)
 	cuda.AddMul1D(rndRealGPU, paraReal, m)
 
-	paraImag := cuda.NewSlice(1, [3]int{Nx, Ny, Nz})
+	paraImag := cuda.NewSlice(1, size)
 	defer paraImag.Free()
 	cuda.Zero(paraImag)
 	cuda.AddDotProduct(paraImag, -1, m, rndImagGPU)

@@ -5,6 +5,7 @@ import (
 
 	en "github.com/mumax/3/engine"
 
+	. "github.com/will-henderson/mumax-vhf/data"
 	"github.com/will-henderson/mumax-vhf/tests"
 )
 
@@ -16,9 +17,9 @@ func TestEnergy(t *testing.T) {
 	testcases := tests.Load()
 	defer en.InitAndClose()()
 
-	for test_idx, p := range testcases {
+	for test_idx, s := range testcases {
 
-		p.Setup()
+		Setup(s)
 
 		en.Relax()
 

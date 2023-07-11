@@ -16,10 +16,24 @@ func NewLinearEvolution() *LinearEvolution {
 	return &LinearEvolution{groundStateField: GroundStateField()}
 }
 
-func (l LinearEvolution) Operate(s, res CSlice) {
+// this returns the operation divided by i. such that it is real.
+func (l LinearEvolution) Operate(res *data.Slice, s *data.Slice) {
 
-	SetSIFieldComplex(s, res)
-	SScal(res, res, -1)
+	SetSIField(res, s)
+	cuda.Scale(res, res, -1)
+	cuda.AddMul1D(res, l.groundStateField, s)
+	cuda.CrossProduct(res, en.M.Buffer(), res)
+
+	//now multiply by the dynamic factor: i * γ
+	cuda.Scale(res, res, float32(en.GammaLL))
+
+}
+
+// we pass the return by reference
+func (l LinearEvolution) OperateComplex(res *CSlice, s CSlice) {
+
+	SetSIFieldComplex(*res, s)
+	SScal(*res, *res, -1)
 	cuda.AddMul1D(res.Real(), l.groundStateField, s.Real())
 	cuda.AddMul1D(res.Imag(), l.groundStateField, s.Imag())
 	cuda.CrossProduct(res.Real(), en.M.Buffer(), res.Real())

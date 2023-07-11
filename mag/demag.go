@@ -1,6 +1,7 @@
 package mag
 
 import (
+	"github.com/mumax/3/cuda"
 	en "github.com/mumax/3/engine"
 	"github.com/mumax/3/mag"
 
@@ -12,12 +13,18 @@ import (
 func DemagTensor() Tensor {
 
 	kernel := mag.DemagKernel(en.Mesh().Size(), en.Mesh().PBC(), en.Mesh().CellSize(), en.DemagAccuracy, *en.Flag_cachedir)
-	t := Zeros()
+	t := ZeroTensor(3, en.MeshSize())
 
-	Msat := en.Msat.GetRegion(0)
-	demag_factor := -Msat * Msat * mag.Mu0
+	MsatGPU, rM := en.Msat.Slice()
+	Msat := MsatGPU.HostCopy().Scalars()
+	if rM {
+		cuda.Recycle(MsatGPU)
+	}
 
 	size := kernel[0][0].Size()
+	Nx := en.MeshSize()[0]
+	Ny := en.MeshSize()[1]
+	Nz := en.MeshSize()[2]
 
 	for c := 0; c < 3; c++ {
 		for c_ := 0; c_ < 3; c_++ {
@@ -45,7 +52,8 @@ func DemagTensor() Tensor {
 								for i_ := 0; i_ < Nx; i_++ {
 									for j_ := 0; j_ < Ny; j_++ {
 										for k_ := 0; k_ < Nz; k_++ {
-											t.SetIdx(c, c_, i, j, k, i_, j_, k_, float64(array[0][mod(j-j_, size[1])][mod(i-i_, size[0])])*demag_factor)
+											t.SetIdx(c, c_, i, j, k, i_, j_, k_,
+												float64(array[0][mod(j-j_, size[1])][mod(i-i_, size[0])]*Msat[k][j][i]*Msat[k_][j_][i_])*-mag.Mu0)
 										}
 									}
 								}
@@ -62,7 +70,8 @@ func DemagTensor() Tensor {
 								for j_ := 0; j_ < Ny; j_++ {
 									for k_ := 0; k_ < Nz; k_++ {
 
-										t.SetIdx(c, c_, i, j, k, i_, j_, k_, float64(array[mod(k-k_, size[2])][mod(j-j_, size[1])][mod(i-i_, size[0])])*demag_factor)
+										t.SetIdx(c, c_, i, j, k, i_, j_, k_,
+											float64(array[mod(k-k_, size[2])][mod(j-j_, size[1])][mod(i-i_, size[0])]*Msat[k][j][i]*Msat[k_][j_][i_])*-mag.Mu0)
 
 									}
 								}

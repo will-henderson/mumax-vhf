@@ -19,7 +19,7 @@ func AddAnisotropyComplex(b, s CSlice) {
 // Note that this assumes that the inputs live on the GPU.
 func AddAnisotropyField(dst, s *data.Slice) {
 
-	magnetisationBuffer := getMagnetisationBuffer()
+	magnetisationBuffer := GetMagnetisationBuffer()
 	m0 := *magnetisationBuffer
 	*magnetisationBuffer = s
 

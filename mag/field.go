@@ -8,8 +8,12 @@ import (
 	. "github.com/will-henderson/mumax-vhf/data"
 )
 
-// Energy returns the energy of a magnetisation state. Calculated as .5 * Σ_rr' m_r t_rr' m_r'.
+// Energy returns the energy of a magnetisation state. Calculated as .5 * cellvolume * Σ_rr' m_r t_rr' m_r'.
 func Energy(t Tensor, mSl *data.Slice) float64 {
+
+	Nx := mSl.Size()[0]
+	Ny := mSl.Size()[1]
+	Nz := mSl.Size()[2]
 
 	if !mSl.CPUAccess() {
 		mSl = mSl.HostCopy()
@@ -36,6 +40,10 @@ func Energy(t Tensor, mSl *data.Slice) float64 {
 		}
 	}
 
+	Dx := en.Mesh().CellSize()[0]
+	Dy := en.Mesh().CellSize()[1]
+	Dz := en.Mesh().CellSize()[2]
+
 	return .5 * E * Dx * Dy * Dz
 
 }
@@ -48,7 +56,7 @@ func SIField(t Tensor, mSl *data.Slice) *data.Slice {
 		mSl = mSl.HostCopy()
 	}
 
-	v := TSP(t, mSl)
+	v := t.TSP(mSl)
 
 	msat, rM := en.Msat.Slice()
 	if rM {
@@ -60,9 +68,9 @@ func SIField(t Tensor, mSl *data.Slice) *data.Slice {
 	ms := msat.Scalars()
 
 	for c := 0; c < 3; c++ {
-		for k := 0; k < Nz; k++ {
-			for j := 0; j < Ny; j++ {
-				for i := 0; i < Nx; i++ {
+		for k := 0; k < mSl.Size()[2]; k++ {
+			for j := 0; j < mSl.Size()[1]; j++ {
+				for i := 0; i < mSl.Size()[0]; i++ {
 					if ms[k][j][i] == 0 {
 						vVec[c][k][j][i] = 0
 					} else {
@@ -85,7 +93,7 @@ func SIFieldComplex(t Tensor, mSl CSlice) CSlice {
 		mSl = mSl.HostCopy()
 	}
 
-	v := TCSP(t, mSl)
+	v := t.TCSP(mSl)
 
 	msat, rM := en.Msat.Slice()
 	if rM {
@@ -98,9 +106,9 @@ func SIFieldComplex(t Tensor, mSl CSlice) CSlice {
 	ms := msat.Scalars()
 
 	for c := 0; c < 3; c++ {
-		for k := 0; k < Nz; k++ {
-			for j := 0; j < Ny; j++ {
-				for i := 0; i < Nx; i++ {
+		for k := 0; k < mSl.Size()[2]; k++ {
+			for j := 0; j < mSl.Size()[1]; j++ {
+				for i := 0; i < mSl.Size()[0]; i++ {
 					if ms[k][j][i] == 0 {
 						vVecReal[c][k][j][i] = 0
 						vVecImag[c][k][j][i] = 0

@@ -1,6 +1,7 @@
 package mag
 
 import (
+	"github.com/mumax/3/cuda"
 	en "github.com/mumax/3/engine"
 
 	. "github.com/will-henderson/mumax-vhf/data"
@@ -11,25 +12,29 @@ import (
 // This forces the updating of the tensor, rather than potentially returning a cached value.
 func UniAnisTensor() Tensor {
 
-	unianis_factor := -2 * en.Ku1.GetRegion(0)
-	direction := en.AnisU.GetRegion(0)
-
-	var op_direction [3][3]float64
-
-	for c := 0; c < 3; c++ {
-		for c_ := 0; c_ < 3; c_++ {
-			op_direction[c][c_] = direction[c] * direction[c_] * unianis_factor
-		}
+	Ku1GPU, rM := en.Ku1.Slice()
+	Ku1 := Ku1GPU.HostCopy().Scalars()
+	if rM {
+		cuda.Recycle(Ku1GPU)
 	}
 
-	t := Zeros()
+	AnisUGPU, rM := en.AnisU.Slice()
+	AnisU := AnisUGPU.HostCopy().Vectors()
+	if rM {
+		cuda.Recycle(AnisUGPU)
+	}
 
-	for c := 0; c < 3; c++ {
-		for c_ := 0; c_ < 3; c_++ {
+	t := ZeroTensor(3, en.MeshSize())
+	Nx := en.MeshSize()[0]
+	Ny := en.MeshSize()[1]
+	Nz := en.MeshSize()[2]
+
+	for k := 0; k < Nz; k++ {
+		for j := 0; j < Ny; j++ {
 			for i := 0; i < Nx; i++ {
-				for j := 0; j < Ny; j++ {
-					for k := 0; k < Nz; k++ {
-						t.SetIdx(c, c_, i, j, k, i, j, k, op_direction[c][c_])
+				for c := 0; c < 3; c++ {
+					for c_ := 0; c_ < 3; c_++ {
+						t.SetIdx(c, c_, i, j, k, i, j, k, float64(-2*Ku1[k][j][i]*AnisU[c][k][j][i]*AnisU[c_][k][j][i]))
 					}
 				}
 			}

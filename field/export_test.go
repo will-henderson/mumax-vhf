@@ -6,6 +6,7 @@ import (
 	cuda "github.com/mumax/3/cuda"
 	data "github.com/mumax/3/data"
 	en "github.com/mumax/3/engine"
+	. "github.com/will-henderson/mumax-vhf/data"
 
 	"github.com/will-henderson/mumax-vhf/tests"
 )
@@ -18,9 +19,9 @@ func TestDemagField(t *testing.T) {
 
 	testcases := tests.Load()
 
-	for _, p := range testcases {
+	for _, s := range testcases {
 
-		p.Setup()
+		Setup(s)
 
 		en.M.Set(en.RandomMagSeed(0))
 
@@ -60,9 +61,9 @@ func TestExchangeField(t *testing.T) {
 	defer en.InitAndClose()()
 	testcases := tests.Load()
 
-	for _, p := range testcases {
+	for _, s := range testcases {
 
-		p.Setup()
+		Setup(s)
 
 		en.M.Set(en.RandomMagSeed(0))
 
@@ -104,9 +105,9 @@ func TestAnisotropyField(t *testing.T) {
 	defer en.InitAndClose()()
 	testcases := tests.Load()
 
-	for _, p := range testcases {
+	for _, s := range testcases {
 
-		p.Setup()
+		Setup(s)
 
 		en.M.Set(en.RandomMagSeed(0))
 

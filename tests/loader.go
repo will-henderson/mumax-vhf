@@ -2,32 +2,33 @@
 package tests
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
-
-	. "github.com/will-henderson/mumax-vhf/data"
+	"path"
 )
 
 // Load returns an array containing the test case system parameters stored in testcases.json
-func Load() []SystemParameters {
+func Load() []string {
 
-	jsonFile, err := os.Open("../tests/testcases.json") //should use a proper path joining here
+	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer jsonFile.Close()
+	directory := path.Join(path.Dir(wd), "tests", "testcases")
+	files, err := ioutil.ReadDir(directory)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	var fileStrings []string
+	for _, file := range files {
+		bytes, err := os.ReadFile(path.Join(directory, file.Name()))
+		if err != nil {
+			fmt.Println(err)
+		}
+		fileStrings = append(fileStrings, string(bytes))
+	}
 
-	var tests []SystemParameters
-	json.Unmarshal(byteValue, &tests)
-
-	return tests
-}
-
-// Name returns a string representation of SystemParameters
-func Name(s SystemParameters) string {
-	return fmt.Sprint(s)
+	return fileStrings
 }

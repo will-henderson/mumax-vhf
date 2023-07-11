@@ -36,9 +36,15 @@ func SetSIFieldComplex(b, s CSlice) {
 	AddAnisotropyComplex(b, s)
 }
 
+func SetSIField(b *data.Slice, s *data.Slice) {
+	SetDemagField(b, s)
+	AddExchangeField(b, s)
+	AddAnisotropyField(b, s)
+}
+
 // getMagnetisationBuffer returns the address of en.M.buffer_, a pointer to a slice on the GPU storing the magnetisation.
 // Cached on initial call.
-func getMagnetisationBuffer() **data.Slice {
+func GetMagnetisationBuffer() **data.Slice {
 	if magnetisationBuffer == nil {
 
 		//could check that M has actually been initialised first
@@ -61,6 +67,7 @@ func GroundStateField() *data.Slice {
 	en.SetDemagField(dst)
 	en.AddExchangeField(dst)
 	en.AddAnisotropyField(dst)
+	en.B_ext.AddTo(dst)
 
 	//dst now holds the ground state field.
 	result := cuda.NewSlice(1, en.Mesh().Size())
