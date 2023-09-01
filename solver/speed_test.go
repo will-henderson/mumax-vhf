@@ -11,7 +11,7 @@ import (
 )
 
 var bigTest = `
-SetGridSize(50, 10, 4)
+SetGridSize(160, 160, 1)
 SetCellSize(20e-9, 20e-9, 20e-9)
 
 Msat  = 16074.649
@@ -52,6 +52,7 @@ func TestArnoldiTime(t *testing.T) {
 
 	fmt.Println("Linear Operation Time:", aft.lopTime,
 		", Arpack Time ", aft.arpackTime,
-		", Extracting the final eigenvectors", aft.finishingTime)
+		", Extracting the final eigenvectors", aft.finishingTime,
+		", Copying Time:", aft.copyTime)
 
 }

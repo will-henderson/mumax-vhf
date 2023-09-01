@@ -2,9 +2,8 @@ package solver
 
 /*
 #cgo CFLAGS: -I /home/will/amd/aocl/4.0/include_LP64
-#cgo LDFLAGS: -lgfortran
-#cgo LDFLAGS: -L /usr/local/lib -l:libarpack.a
-#cgo LDFLAGS: -L /home/will/amd/aocl/4.0/lib_LP64 -l:libflame.a -lblas -lm
+#cgo LDFLAGS: -L /usr/local/lib -larpack
+#cgo LDFLAGS: -L /home/will/amd/aocl/4.0/lib_LP64 -lflame -lblis -lm
 #include <arpack/arpack.h>
 */
 import "C"

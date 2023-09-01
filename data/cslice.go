@@ -12,6 +12,10 @@ type CSlice struct {
 	real, imag *data.Slice
 }
 
+func CSliceFromParts(real, imag *data.Slice) CSlice {
+	return CSlice{real: real, imag: imag}
+}
+
 func NewCSlice(nComp int, size [3]int) CSlice {
 
 	return CSlice{
@@ -19,6 +23,13 @@ func NewCSlice(nComp int, size [3]int) CSlice {
 		imag: cuda.NewSlice(nComp, size),
 	}
 
+}
+
+func NewCBuffer(nComp int, size [3]int) CSlice {
+	return CSlice{
+		real: cuda.Buffer(nComp, size),
+		imag: cuda.Buffer(nComp, size),
+	}
 }
 
 func NewCSliceCPU(nComp int, size [3]int) CSlice {
@@ -30,6 +41,11 @@ func NewCSliceCPU(nComp int, size [3]int) CSlice {
 
 func (cs CSlice) NComp() int {
 	return cs.real.NComp()
+}
+
+func (cs CSlice) Comp(i int) CSlice {
+	return CSlice{real: cs.Real().Comp(i),
+		imag: cs.Imag().Comp(i)}
 }
 
 func (cs CSlice) Size() [3]int {
@@ -71,6 +87,13 @@ func (cs CSlice) Free() {
 
 	cs.real.Free()
 	cs.imag.Free()
+
+}
+
+func (cs CSlice) Recycle() {
+
+	cuda.Recycle(cs.real)
+	cuda.Recycle(cs.imag)
 
 }
 

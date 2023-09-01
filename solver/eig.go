@@ -2,11 +2,10 @@ package solver
 
 import (
 	"fmt"
-	"unsafe"
 )
 
 //#cgo CFLAGS: -I /home/will/amd/aocl/4.0/include_LP64
-//#cgo LDFLAGS: -L /home/will/amd/aocl/4.0/lib_LP64 -l:libflame.a -lblas -lm
+//#cgo LDFLAGS: -L /home/will/amd/aocl/4.0/lib_LP64 -l:libflame.a -lblis -lm
 //#cgo LDFLAGS: -L${SRCDIR}
 //#include <lapacke.h>
 import "C"
@@ -19,10 +18,10 @@ func Eig(n int, mat []float64) ([]complex128, [][]complex128) {
 	V := make([]float64, n*n)
 
 	nC := C.lapack_int(n)
-	charN := C.CString("N")
-	charV := C.CString("V")
-	defer C.free(unsafe.Pointer(charN))
-	defer C.free(unsafe.Pointer(charV))
+	//charN := C.CString("N")
+	//charV := C.CString("V")
+	//defer C.free(unsafe.Pointer(charN))
+	//defer C.free(unsafe.Pointer(charV))
 
 	info := C.LAPACKE_dgeev(C.LAPACK_ROW_MAJOR, C.char([]rune("N")[0]), C.char([]rune("V")[0]), nC,
 		(*C.double)(&mat[0]), nC, (*C.double)(&wr[0]), (*C.double)(&wi[0]), nil, nC, (*C.double)(&V[0]), nC)

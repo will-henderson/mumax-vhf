@@ -142,6 +142,11 @@ func (t Tensor) To2D() [][]float64 {
 	return twoD
 }
 
+// To4D returns a [NComp][NComp[Nx*Ny*Nz][Nx*Ny*Nz]float64 of elements.
+func (t Tensor) To4D() [][][][]float64 {
+	return t.n
+}
+
 // ToCSV saves a tensor in CSV format in a file named name. The columns correspond to the r position and rows to the r' position.
 // The elements are ordered by magnetisation component, then x position, then y position, then z position.
 func (t Tensor) ToCSV(name string) {

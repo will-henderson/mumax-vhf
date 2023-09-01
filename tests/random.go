@@ -67,17 +67,17 @@ func RandomFloats(length int, rng *rand.Rand) []float32 {
 
 }
 
-func Random3Float(rng *rand.Rand) (m [3]float32) {
+func Random3Float(rng *rand.Rand) (m [3]float64) {
 
 	for c := 0; c < 3; c++ {
-		m[c] = rng.Float32() - .5
+		m[c] = rng.Float64() - .5
 	}
 
-	norm := float32(0.)
+	norm := 0.
 	for c := 0; c < 3; c++ {
 		norm += m[c] * m[c]
 	}
-	norm = float32(math.Sqrt(float64(norm)))
+	norm = math.Sqrt(norm)
 
 	for c := 0; c < 3; c++ {
 		m[c] /= norm

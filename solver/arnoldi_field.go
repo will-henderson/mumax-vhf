@@ -15,6 +15,10 @@ import (
 	"github.com/mumax/3/util"
 )
 
+var (
+	ARNOLDI_NEV = 20 //the maximum number of eigenvectors to find is n - 2.
+)
+
 type ArnoldiField struct {
 	eigenSolver
 }
@@ -26,7 +30,7 @@ func (solver ArnoldiField) Modes() ([]float64, []CSlice) {
 	le := field.NewLinearEvolution()
 	rot := new(field.RotationToZ)
 	rot.InitRotation()
-	arn := newArnoldiS(totalSize, totalSize-2, -1, "I", "SM", 0, 100*totalSize, nil)
+	arn := newArnoldiS(totalSize, ARNOLDI_NEV, -1, "I", "SM", 0, 100*totalSize, nil)
 
 	xSl2 := cuda.NewSlice(2, en.MeshSize())
 	ySl2 := cuda.NewSlice(2, en.MeshSize())
@@ -118,7 +122,7 @@ func (solver ArnoldiFieldUnrotated) Modes() ([]float64, []CSlice) {
 	rot := new(field.RotationToZ)
 	rot.InitRotation()
 	defer rot.Free()
-	arn := newArnoldiS(totalSize, totalSize-2, -1, "I", "LM", 0, 100*totalSize, nil)
+	arn := newArnoldiS(totalSize, ARNOLDI_NEV, -1, "I", "LM", 0, 100*totalSize, nil)
 
 	xSl3 := cuda.NewSlice(3, en.MeshSize())
 	ySl3 := cuda.NewSlice(3, en.MeshSize())
@@ -292,7 +296,7 @@ func (solver ArnoldiField2) Modes() ([]float64, []CSlice) {
 
 type ArnoldiFieldTimes struct {
 	eigenSolver
-	lopTime, arpackTime, finishingTime time.Duration
+	lopTime, arpackTime, copyTime, finishingTime time.Duration
 }
 
 func (solver *ArnoldiFieldTimes) Modes() ([]float64, []CSlice) {
@@ -302,7 +306,7 @@ func (solver *ArnoldiFieldTimes) Modes() ([]float64, []CSlice) {
 	le := field.NewLinearEvolution()
 	rot := new(field.RotationToZ)
 	rot.InitRotation()
-	arn := newArnoldiS(totalSize, totalSize-2, -1, "I", "SM", 0, 100*totalSize, nil)
+	arn := newArnoldiS(totalSize, ARNOLDI_NEV, -1, "I", "SM", 0, 100*totalSize, nil)
 
 	xSl2 := cuda.NewSlice(2, en.MeshSize())
 	ySl2 := cuda.NewSlice(2, en.MeshSize())
@@ -313,6 +317,10 @@ func (solver *ArnoldiFieldTimes) Modes() ([]float64, []CSlice) {
 
 	ido, x, y := arn.iterate()
 	for ido == 1 || ido == -1 {
+
+		tCop := time.Now()
+		solver.arpackTime += tCop.Sub(tAfter)
+
 		xArr := make([][]float32, 2)
 		xArr[0] = x[0:en.Mesh().NCell()]
 		xArr[1] = x[en.Mesh().NCell():totalSize]
@@ -320,20 +328,23 @@ func (solver *ArnoldiFieldTimes) Modes() ([]float64, []CSlice) {
 		data.Copy(xSl2, xSlCPU)
 
 		tBefore := time.Now()
-		solver.arpackTime += tBefore.Sub(tAfter)
+		solver.copyTime += tBefore.Sub(tCop)
 
 		rot.DerotateMode(xSl3, xSl2)
 		le.Operate(ySl3, xSl3)
 		rot.RotateMode(ySl2, ySl3)
 
-		tAfter := time.Now()
-		solver.lopTime += tAfter.Sub(tBefore)
+		tCop = time.Now()
+		solver.lopTime += tCop.Sub(tBefore)
 
 		yArr := make([][]float32, 2)
 		yArr[0] = y[0:en.Mesh().NCell()]
 		yArr[1] = y[en.Mesh().NCell():totalSize]
 		ySlCPU := data.SliceFromArray(yArr, en.Mesh().Size())
 		data.Copy(ySlCPU, ySl2)
+
+		tAfter = time.Now()
+		solver.copyTime += tAfter.Sub(tCop)
 
 		ido, x, y = arn.iterate()
 	}

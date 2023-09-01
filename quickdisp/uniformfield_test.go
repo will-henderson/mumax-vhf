@@ -31,7 +31,7 @@ func TestUniformDemag(t *testing.T) {
 
 			m := tests.Random3Float(rng)
 
-			asField := as.UniformDemag(m)
+			asField := as.Demag(m)
 
 			uniformSlice := expandToSlice(m)
 
@@ -48,7 +48,7 @@ func TestUniformDemag(t *testing.T) {
 
 			err := 0
 			for c := 0; c < 3; c++ {
-				if math.Abs(float64((mmField[c]-asField[c])/mmField[c])) > 1e-4 {
+				if math.Abs(float64((mmField[c]-float32(asField[c]))/mmField[c])) > 1e-4 {
 					err++
 				}
 			}
@@ -77,7 +77,7 @@ func TestUniformUniAnis(t *testing.T) {
 
 			m := tests.Random3Float(rng)
 
-			asField := as.UniformUniAnis(m)
+			asField := as.UniAnis(m)
 
 			uniformSlice := expandToSlice(m)
 			uniAnisField := cuda.NewSlice(3, en.MeshSize())
@@ -93,7 +93,7 @@ func TestUniformUniAnis(t *testing.T) {
 
 			err := 0
 			for c := 0; c < 3; c++ {
-				if math.Abs(float64((mmField[c]-asField[c])/mmField[c])) > 1e-4 {
+				if math.Abs(float64((mmField[c]-float32(asField[c]))/mmField[c])) > 1e-4 {
 					err++
 				}
 			}
@@ -106,13 +106,13 @@ func TestUniformUniAnis(t *testing.T) {
 }
 
 // return a slice living on the gpu with magnetisation m at all spatial points.
-func expandToSlice(m [3]float32) *data.Slice {
+func expandToSlice(m [3]float64) *data.Slice {
 
 	arr := make([][]float32, 3)
 	for c := 0; c < 3; c++ {
 		arr[c] = make([]float32, en.Mesh().NCell())
 		for j := 0; j < en.Mesh().NCell(); j++ {
-			arr[c][j] = m[c]
+			arr[c][j] = float32(m[c])
 		}
 	}
 	sl := data.SliceFromArray(arr, en.Mesh().Size())
